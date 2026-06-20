@@ -1,121 +1,154 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import PrivateRoute from "./components/PrivateRoute";
+import PermisoGuard from "./components/PermisoGuard.jsx";
+import MainLayout from "./components/layout/MainLayout";
+import LoginPage from "./pages/LoginPage";
+import DashboardPage from "./pages/dashboard/DashboardPage.jsx";
+import ProductosPage from "./pages/productos/ProductosPage.jsx";
+import ProductoFormPage from "./pages/productos/ProductoFormPage.jsx";
+import ProductoDetallePage from "./pages/productos/ProductoDetallePage.jsx";
+import PreciosPage from "./pages/productos/PreciosPage.jsx";
+import ProveedoresPage from "./pages/proveedores/ProveedoresPage.jsx";
+import ProveedorFormPage from "./pages/proveedores/ProveedorFormPage.jsx";
+import ComprasPage from "./pages/compras/ComprasPage.jsx";
+import NuevaOrdenPage from "./pages/compras/NuevaOrdenPage.jsx";
+import OrdenDetallePage from "./pages/compras/OrdenDetallePage.jsx";
+import EditarOrdenPage from "./pages/compras/EditarOrdenPage.jsx";
+import InventarioPage from "./pages/inventario/InventarioPage.jsx";
+import GastosPage from "./pages/gastos/GastosPage.jsx";
+import ClientesPage from "./pages/clientes/ClientesPage.jsx";
+import ClienteFormPage from "./pages/clientes/ClienteFormPage.jsx";
+import VentasPage from "./pages/ventas/VentasPage.jsx";
+import NuevaVentaPage from "./pages/ventas/NuevaVentaPage.jsx";
+import VentaDetallePage from "./pages/ventas/VentaDetallePage.jsx";
+import { ToastProvider } from "./context/ToastContext.jsx";
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+// ─── Página de acceso denegado ────────────────────────────────────────────────
+function AccesoDenegado() {
+    const location = useLocation();
+    const mensaje = location.state?.mensajeAcceso ?? "No tienes permiso para acceder a esta sección";
+    return (
+        <div className="flex flex-col items-center justify-center min-h-screen gap-3">
+            <p className="text-neutral-500 text-sm">{mensaje}</p>
+            <a href="/" className="text-sm font-medium text-neutral-900 underline
+                                   underline-offset-2">
+                Volver al inicio
+            </a>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+    );
 }
 
-export default App
+// ─── Helper para rutas con permiso ───────────────────────────────────────────
+function PR({ permiso, children }) {
+    return (
+        <PrivateRoute>
+            <PermisoGuard permiso={permiso}>
+                <MainLayout>
+                    {children}
+                </MainLayout>
+            </PermisoGuard>
+        </PrivateRoute>
+    );
+}
+
+export default function App() {
+    return (
+        <BrowserRouter>
+            <AuthProvider>
+                <ToastProvider>
+
+                    <Routes>
+                        <Route path="/login" element={<LoginPage />} />
+
+                        {/* Dashboard */}
+                        <Route path="/" element={
+                            <PrivateRoute><MainLayout><DashboardPage /></MainLayout></PrivateRoute>
+                        } />
+
+                        {/* Ventas — todos pueden crear, ver todas requiere permiso */}
+                        <Route path="/ventas" element={
+                            <PrivateRoute><MainLayout><VentasPage /></MainLayout></PrivateRoute>
+                        } />
+                        <Route path="/ventas/nueva" element={
+                            <PR permiso="ventas:crear"><NuevaVentaPage /></PR>
+                        } />
+                        <Route path="/ventas/:id" element={
+                            <PrivateRoute><MainLayout><VentaDetallePage /></MainLayout></PrivateRoute>
+                        } />
+
+                        {/* Compras */}
+                        <Route path="/compras" element={
+                            <PR permiso="compras:ver_todas"><ComprasPage /></PR>
+                        } />
+                        <Route path="/compras/nueva" element={
+                            <PR permiso="compras:crear"><NuevaOrdenPage /></PR>
+                        } />
+                        <Route path="/compras/:id" element={
+                            <PR permiso="compras:ver_todas"><OrdenDetallePage /></PR>
+                        } />
+                        <Route path="/compras/:id/editar" element={
+                            <PR permiso="compras:crear"><EditarOrdenPage /></PR>
+                        } />
+
+                        {/* Inventario */}
+                        <Route path="/inventario" element={
+                            <PR permiso="inventario:gestionar"><InventarioPage /></PR>
+                        } />
+
+                        {/* Productos */}
+                        <Route path="/productos" element={
+                            <PR permiso="compras:ver_todas"><ProductosPage /></PR>
+                        } />
+                        <Route path="/productos/nuevo" element={
+                            <PR permiso="compras:crear"><ProductoFormPage /></PR>
+                        } />
+                        <Route path="/productos/:id" element={
+                            <PR permiso="compras:ver_todas"><ProductoDetallePage /></PR>
+                        } />
+                        <Route path="/productos/:id/editar" element={
+                            <PR permiso="compras:crear"><ProductoFormPage /></PR>
+                        } />
+
+                        {/* Precios */}
+                        <Route path="/precios" element={
+                            <PR permiso="precios:ajustar"><PreciosPage /></PR>
+                        } />
+
+                        {/* Proveedores */}
+                        <Route path="/proveedores" element={
+                            <PR permiso="compras:ver_todas"><ProveedoresPage /></PR>
+                        } />
+                        <Route path="/proveedores/nuevo" element={
+                            <PR permiso="compras:crear"><ProveedorFormPage /></PR>
+                        } />
+                        <Route path="/proveedores/:id/editar" element={
+                            <PR permiso="compras:crear"><ProveedorFormPage /></PR>
+                        } />
+
+                        {/* Clientes */}
+                        <Route path="/clientes" element={
+                            <PR permiso="clientes:gestionar"><ClientesPage /></PR>
+                        } />
+                        <Route path="/clientes/nuevo" element={
+                            <PR permiso="clientes:gestionar"><ClienteFormPage /></PR>
+                        } />
+                        <Route path="/clientes/:id/editar" element={
+                            <PR permiso="clientes:gestionar"><ClienteFormPage /></PR>
+                        } />
+
+                        {/* Gastos */}
+                        <Route path="/gastos" element={
+                            <PrivateRoute><MainLayout><GastosPage /></MainLayout></PrivateRoute>
+                        } />
+
+                        {/* Acceso denegado */}
+                        <Route path="/sin-permiso" element={<AccesoDenegado />} />
+
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                </ToastProvider>
+            </AuthProvider>
+        </BrowserRouter>
+    );
+}
